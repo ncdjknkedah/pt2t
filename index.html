@@ -149,7 +149,7 @@ pre.copy{white-space:pre-wrap;font-family:'IBM Plex Sans',Arial,sans-serif;font-
 
 <div class="sticky">
   <div class="card">
-    <h2 data-ms="Sasaran individu">Individual targets</h2>
+    <h2 data-ms="Cadangan sasaran individu">Suggested individual targets</h2>
     <p class="hint" data-ms="Dikemas kini secara automatik apabila profil diubah.">Updates automatically as the profile changes.</p>
     <div class="tgt" style="margin-top:12px">
       <div class="tbox"><p class="k">HbA1c</p><p class="v" id="tA">—</p><p class="s" id="tAs"></p></div>
@@ -157,13 +157,21 @@ pre.copy{white-space:pre-wrap;font-family:'IBM Plex Sans',Arial,sans-serif;font-
       <div class="tbox"><p class="k">LDL-C</p><p class="v" id="tL">—</p><p class="s" id="tLs"></p></div>
     </div>
     <div class="why" id="why"></div>
-    <h3 data-ms="Ubah suai sasaran HbA1c (jika perlu)">Adjust HbA1c target (if needed)</h3>
-    <div class="row">
-      <label class="f"><span data-ms="Sasaran HbA1c akhir">Final HbA1c target</span><select id="ovA">
+    <h3 data-ms="Keputusan doktor: sahkan atau ubah sasaran">Doctor's decision: confirm or adjust targets</h3>
+    <p class="hint" data-ms="Sasaran di atas ialah cadangan. Doktor yang merawat membuat keputusan akhir bersama pesakit.">The targets above are suggestions. The treating doctor makes the final decision with the patient.</p>
+    <div class="row" style="margin-top:8px">
+      <label class="f"><span data-ms="Sasaran HbA1c">HbA1c target</span><select id="ovA">
         <option value="auto" data-ms="Ikut cadangan">As suggested</option><option value="6.5">≤6.5%</option><option value="7.0">&lt;7.0%</option><option value="7.5">≤7.5%</option><option value="8.0">≤8.0%</option><option value="8.5">&lt;8.5%</option>
       </select></label>
+      <label class="f"><span data-ms="Sasaran BP (mmHg)">BP target (mmHg)</span><select id="ovB">
+        <option value="auto" data-ms="Ikut cadangan">As suggested</option><option value="130">&lt;130/80</option><option value="chd">130–139 / 70–79</option><option value="140">&lt;140/80</option><option value="14090">&lt;140/90</option><option value="150">&lt;150/90</option>
+      </select></label>
+      <label class="f"><span data-ms="Sasaran LDL-C (mmol/L)">LDL-C target (mmol/L)</span><select id="ovL">
+        <option value="auto" data-ms="Ikut cadangan">As suggested</option><option value="1.4">&lt;1.4</option><option value="1.8">&lt;1.8</option><option value="2.6">&lt;2.6</option><option value="3.0">&lt;3.0</option><option value="ind" data-ms="Individu (tiada sasaran angka)">Individual (no numeric target)</option>
+      </select></label>
     </div>
-    <p class="note" data-ms="Ubah hanya selepas perbincangan bersama pesakit (keutamaan, beban rawatan, sokongan keluarga). Catat sebab dalam rekod.">Change only after discussion with the patient (preferences, treatment burden, family support). Record the reason in the notes.</p>
+    <label class="f" style="margin-top:10px"><span data-ms="Sebab ubah suai (dimasukkan dalam rekod yang disalin)">Reason for adjustment (included in the copied record)</span><input type="text" id="ovWhy" data-ph-en="e.g. patient preference, frailty, side effects" data-ph-ms="cth. pilihan pesakit, kerapuhan, kesan sampingan" placeholder="e.g. patient preference, frailty, side effects" style="font:inherit;font-size:15px;color:var(--ink);border:1px solid #CFC9BC;border-radius:8px;padding:7px 9px"></label>
+    <p class="note" data-ms="Ubah selepas perbincangan bersama pesakit (keutamaan, beban rawatan, sokongan keluarga). Panduan rawatan di tab 2 akan mengikut sasaran yang dipilih.">Adjust after discussion with the patient (preferences, treatment burden, family support). The treatment guide in tab 2 follows the targets chosen here.</p>
     <div class="btns"><button class="btn" id="go2" data-ms="Seterusnya: panduan rawatan →">Next: treatment guide →</button><button class="btn sec" id="cp1" data-ms="Salin sasaran">Copy targets</button><span class="toast" id="t1"></span></div>
     <pre class="copy" id="pc1"></pre>
   </div>
@@ -369,6 +377,9 @@ function targets(){
   else if(p.chd){r.b={s:140,d:80,txt:'130–139 / 70–79',sub:L('CHD present: avoid SBP <120 and DBP <70','Ada CHD: elak SBP <120 dan DBP <70'),lowS:120,lowD:70};}
   else if(dkd||p.stroke){r.b={s:130,d:80,txt:'<130/80',sub:(dkd?'DKD':L('High stroke risk','Risiko strok tinggi'))+L(': SBP <130 if tolerated (not <120), DBP 70–79',': SBP <130 jika toleran (bukan <120), DBP 70–79'),lowS:120,lowD:70};}
   else{r.b={s:140,d:80,txt:'<140/80',sub:L('Ideal SBP 130–139, DBP 70–79 (CPG Table 3-5)','Ideal SBP 130–139, DBP 70–79 (CPG Jadual 3-5)'),lowS:120,lowD:70};}
+  r.bAuto=r.b.txt; const ob=$('ovB').value;
+  if(ob!=='auto'){const M={'130':{s:130,d:80,txt:'<130/80',lowS:120,lowD:70},'chd':{s:140,d:80,txt:'130–139 / 70–79',lowS:120,lowD:70},'140':{s:140,d:80,txt:'<140/80',lowS:120,lowD:70},'14090':{s:140,d:90,txt:'<140/90'},'150':{s:150,d:90,txt:'<150/90'}}[ob];
+    if(M.txt!==r.b.txt){r.b=Object.assign({},M,{sub:L('Set by doctor (suggested ','Ditetapkan doktor (cadangan ')+r.bAuto+')'});r.bOv=true;}}
   const tod=p.alb||(p.egfr!==null&&p.egfr<30)||p.lvh||p.ret;
   const rf=[]; if(p.age!==null&&p.age>=65)rf.push(L('age ≥65','umur ≥65')); if(p.htn)rf.push(L('hypertension','hipertensi')); if(p.dysl)rf.push(L('dyslipidaemia','dislipidemia')); if(p.smk)rf.push(L('smoking','merokok')); if(p.bmi!==null&&p.bmi>=27.5)rf.push(L('obesity','obesiti'));
   if(elder&&es.s==='vcomplex'){r.l={v:null,txt:L('Individual','Individu'),sub:L('Continue statin if tolerated, especially for secondary prevention (CPG Table 6-2)','Teruskan statin jika toleran, terutama pencegahan sekunder (CPG Jadual 6-2)'),cat:'—'};}
@@ -379,6 +390,11 @@ function targets(){
   else{
     const sub=(p.dur!==null&&p.dur>=10)?L('High risk: diabetes ≥10 years + risk factor','Risiko tinggi: DM ≥10 tahun + faktor risiko'):L('High risk (does not meet moderate-risk criteria)','Risiko tinggi (tidak memenuhi kriteria risiko sederhana)');
     r.l={v:1.8,nh:2.6,txt:'<1.8',sub,cat:L('high','tinggi')};}
+  r.lAuto=r.l.txt; const ol=$('ovL').value;
+  if(ol!=='auto'){
+    if(ol==='ind'){if(r.l.v!==null){r.l={v:null,txt:L('Individual','Individu'),sub:L('Set by doctor (suggested ','Ditetapkan doktor (cadangan ')+r.lAuto+' mmol/L)',cat:'—'};r.lOv=true;}}
+    else{const v=parseFloat(ol);if(v!==r.l.v){const nh={1.4:2.2,1.8:2.6,2.6:3.4,3.0:3.8}[v];r.l={v,nh,txt:'<'+ol,sub:L('Set by doctor (suggested ','Ditetapkan doktor (cadangan ')+r.lAuto+(r.l.v?' mmol/L':'')+')',cat:L('set by doctor','ditetapkan doktor'),vh:v===1.4,mod:v>=2.6};r.lOv=true;}}
+  }
   r.p=p; r.cvd=cvd; r.dkd=dkd;
   return r;
 }
@@ -494,7 +510,7 @@ function lipid(T){
   const Lt=T.l;
   if(Lt.v===null){const h=stat(true,L(`LDL ${l} mmol/L: individual target`,`LDL ${l} mmol/L: sasaran individu`));S.push(li(L('Continue statin if tolerated; weigh benefit against life expectancy.','Teruskan statin jika toleran; pertimbang manfaat mengikut jangka hayat.')));return {html:h+`<ol class="steps">${S.join('')}</ol>`,at:true,txt:txtOf(h,S)};}
   const at=l<Lt.v; const need=Math.max(0,Math.round((1-Lt.v/l)*100));
-  const head=stat(at,at?L(`LDL ${l} mmol/L within target (${Lt.txt}; ${Lt.cat} risk)`,`LDL ${l} mmol/L dalam sasaran (${Lt.txt}; risiko ${Lt.cat})`):L(`LDL ${l} mmol/L above target (${Lt.txt}; needs ~${need}% reduction)`,`LDL ${l} mmol/L atas sasaran (${Lt.txt}; perlu turun ~${need}%)`));
+  const head=stat(at,at?(T.lOv?L(`LDL ${l} mmol/L within target (${Lt.txt}; set by doctor)`,`LDL ${l} mmol/L dalam sasaran (${Lt.txt}; ditetapkan doktor)`):L(`LDL ${l} mmol/L within target (${Lt.txt}; ${Lt.cat} risk)`,`LDL ${l} mmol/L dalam sasaran (${Lt.txt}; risiko ${Lt.cat})`)):L(`LDL ${l} mmol/L above target (${Lt.txt}; needs ~${need}% reduction)`,`LDL ${l} mmol/L atas sasaran (${Lt.txt}; perlu turun ~${need}%)`));
   const st=$('stat').value,ez=$('eze').value;
   if(at){S.push(li(L('Continue treatment; repeat lipid profile yearly.','Teruskan rawatan; ulang profil lipid setahun sekali.')));}
   else{
@@ -534,8 +550,8 @@ function update(){
   $('elderBlock').style.display=T.elder?'block':'none';
   $('tA').textContent=fmtA2(T.a,T.elder)+(T.aOv?'*':'');
   $('tAs').textContent=T.aOv?L('Adjusted by doctor (originally suggested ','Diubah suai oleh pegawai (cadangan asal ')+fmtA2(T.aAuto,T.elder)+')':(T.elder?L('Older adult: ','Warga emas: ')+eldName(T.es):({6.5:L('Tight','Ketat'),7.0:L('Standard','Standard'),8.0:L('Less stringent','Kurang ketat')})[T.aAuto]||'');
-  $('tB').textContent=T.b.txt; $('tBs').textContent=T.b.sub;
-  $('tL').textContent=T.l.txt+(T.l.v?' mmol/L':''); $('tLs').textContent=T.l.sub;
+  $('tB').textContent=T.b.txt+(T.bOv?'*':''); $('tBs').textContent=T.b.sub;
+  $('tL').textContent=T.l.txt+(T.l.v?' mmol/L':'')+(T.lOv?'*':''); $('tLs').textContent=T.l.sub;
   const w=[T.aw];
   {const F=fbsT(T);w.push(L(`Fasting glucose target (capillary FBS / SMBG) for titration between 6-monthly HbA1c tests: ${f1(F[0])}–${f1(F[1])} mmol/L.`,`Sasaran glukosa puasa (FBS kapilari / SMBG) untuk titrasi antara ujian HbA1c 6-bulanan: ${f1(F[0])}–${f1(F[1])} mmol/L.`));}
   if(T.l.v&&T.p.age>40) w.push(L('All patients with diabetes aged >40 should receive a statin regardless of LDL-C. If the target is unattainable, aim for ≥50% reduction.','Semua pesakit DM >40 tahun perlu statin tanpa mengira paras LDL-C. Jika sasaran tidak dapat dicapai, sasarkan penurunan ≥50%.'));
@@ -553,7 +569,7 @@ function update(){
   last={T,g,b,l,n,fu};
   $('pc1').textContent=tgtText(T);
 }
-function tgtText(T){const F=fbsT(T);return L('INDIVIDUAL TARGETS (T2T Protocol, Kedah SHD)','SASARAN INDIVIDU (Protokol T2T, JKN Kedah)')+`\nHbA1c: ${fmtA2(T.a,T.elder)}${T.aOv?L(' (adjusted; suggested ',' (diubah suai; cadangan ')+fmtA2(T.aAuto,T.elder)+')':''}\n`+L('Fasting glucose (FBS/SMBG): ','Glukosa puasa (FBS/SMBG): ')+`${f1(F[0])}–${f1(F[1])} mmol/L\nBP: ${T.b.txt} mmHg\nLDL-C: ${T.l.txt}${T.l.v?' mmol/L ('+L('risk ','risiko ')+T.l.cat+')':''}\n`+L('Basis: ','Asas: ')+T.aw}
+function tgtText(T){const F=fbsT(T);return L('INDIVIDUAL TARGETS (T2T Protocol, Kedah SHD)','SASARAN INDIVIDU (Protokol T2T, JKN Kedah)')+`\nHbA1c: ${fmtA2(T.a,T.elder)}${T.aOv?L(' (adjusted; suggested ',' (diubah suai; cadangan ')+fmtA2(T.aAuto,T.elder)+')':''}\n`+L('Fasting glucose (FBS/SMBG): ','Glukosa puasa (FBS/SMBG): ')+`${f1(F[0])}–${f1(F[1])} mmol/L\nBP: ${T.b.txt} mmHg\nLDL-C: ${T.l.txt}${T.l.v?' mmol/L ('+(T.lOv?L('set by doctor','ditetapkan doktor'):L('risk ','risiko ')+T.l.cat)+')':''}\n`+L('Basis: ','Asas: ')+T.aw+((T.aOv||T.bOv||T.lOv)?'\n'+L('Adjusted by doctor: ','Diubah suai oleh doktor: ')+[T.aOv?'HbA1c':'',T.bOv?'BP':'',T.lOv?'LDL-C':''].filter(Boolean).join(', ')+($('ovWhy').value.trim()?L('. Reason: ','. Sebab: ')+$('ovWhy').value.trim():''):'')}
 async function copyOut(text,pre,toast){
   try{await navigator.clipboard.writeText(text);$(toast).textContent=L('Copied','Disalin');setTimeout(()=>$(toast).textContent='',2000);}
   catch(e){$(pre).style.display='block';$(pre).textContent=text;$(toast).textContent=L('Select the text below and copy','Pilih teks di bawah dan salin');}
