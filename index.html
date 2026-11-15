@@ -53,6 +53,7 @@ input[type=number]:focus,select:focus{outline:2px solid var(--teal);border-color
 .status.ok{background:var(--greenbg);color:var(--green)}
 .status.no{background:var(--redbg);color:var(--red)}
 .status.na{background:#EEE;color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 .status .big{font-family:'Source Serif 4',Georgia,serif;font-size:22px}
 ol.steps{margin:6px 0 0 0;padding:0;list-style:none;counter-reset:s}
 ol.steps li{counter-increment:s;position:relative;padding:6px 0 6px 34px;border-top:1px solid #F0ECE3;font-size:14px}
@@ -97,11 +98,11 @@ pre.copy{white-space:pre-wrap;font-family:'IBM Plex Sans',Arial,sans-serif;font-
   <div class="card">
     <h2 data-ms="Profil pesakit">Patient profile</h2>
     <div class="row">
-      <label class="f"><span data-ms="Umur (tahun)">Age (years)</span><input type="number" id="age" min="18" max="110" value="55"></label>
+      <label class="f"><span data-ms="Umur (tahun)">Age (years)</span><input type="number" id="age" min="18" max="110"></label>
       <label class="f"><span data-ms="Jantina">Sex</span><select id="sex"><option value="M" data-ms="Lelaki">Male</option><option value="F" data-ms="Perempuan">Female</option></select></label>
-      <label class="f"><span data-ms="Tempoh DM (tahun)">Diabetes duration (years)</span><input type="number" id="dur" min="0" max="70" value="6"></label>
-      <label class="f">BMI (kg/m²)<input type="number" id="bmi" min="10" max="80" step="0.1" value="28"></label>
-      <label class="f">eGFR (mL/min/1.73m²)<input type="number" id="egfr" min="0" max="200" value="80"></label>
+      <label class="f"><span data-ms="Tempoh DM (tahun)">Diabetes duration (years)</span><input type="number" id="dur" min="0" max="70" step="0.5" data-ph-en="0 if &lt;1 year" data-ph-ms="0 jika &lt;1 tahun" placeholder="0 if <1 year"></label>
+      <label class="f">BMI (kg/m²)<input type="number" id="bmi" min="10" max="80" step="0.1"></label>
+      <label class="f">eGFR (mL/min/1.73m²)<input type="number" id="egfr" min="0" max="200" data-ph-en="optional" data-ph-ms="pilihan" placeholder="optional"></label>
     </div>
     <h3 data-ms="Penyakit kardiovaskular dan kerosakan organ sasaran">Cardiovascular disease and target organ damage</h3>
     <div class="chk">
@@ -115,8 +116,8 @@ pre.copy{white-space:pre-wrap;font-family:'IBM Plex Sans',Arial,sans-serif;font-
     </div>
     <h3 data-ms="Faktor risiko lain">Other risk factors</h3>
     <div class="chk">
-      <label><input type="checkbox" id="htn" checked><span data-ms="Hipertensi">Hypertension</span></label>
-      <label><input type="checkbox" id="dysl" checked><span data-ms="Dislipidemia / atas statin">Dyslipidaemia / on statin</span></label>
+      <label><input type="checkbox" id="htn"><span data-ms="Hipertensi">Hypertension</span></label>
+      <label><input type="checkbox" id="dysl"><span data-ms="Dislipidemia / atas statin">Dyslipidaemia / on statin</span></label>
       <label><input type="checkbox" id="smk"><span data-ms="Merokok (semasa)">Current smoker</span></label>
     </div>
     <h3 data-ms="Risiko dan akibat hipoglisemia">Hypoglycaemia risk and consequences</h3>
@@ -142,7 +143,7 @@ pre.copy{white-space:pre-wrap;font-family:'IBM Plex Sans',Arial,sans-serif;font-
         <option value="complex" data-ms="Kompleks: ≥3 penyakit kronik atau gangguan kognitif/fungsi ringan–sederhana">Complex: ≥3 chronic illnesses or mild–moderate cognitive/functional impairment</option>
         <option value="vcomplex" data-ms="Sangat kompleks: penjagaan jangka panjang, penyakit tahap akhir, gangguan kognitif sederhana–teruk">Very complex: long-term care, end-stage illness, moderate–severe cognitive impairment</option>
       </select></label>
-      <label class="f" style="margin-top:10px"><span data-ms="Bilangan penyakit kronik lain yang memerlukan rawatan (cth. artritis, CKD 3+, kemurungan, COPD)">Number of other chronic illnesses needing treatment (e.g. arthritis, CKD 3+, depression, COPD)</span><input type="number" id="ncc" min="0" max="15" value="1"></label>
+      <label class="f" style="margin-top:10px"><span data-ms="Bilangan penyakit kronik lain yang memerlukan rawatan (cth. artritis, CKD 3+, kemurungan, COPD)">Number of other chronic illnesses needing treatment (e.g. arthritis, CKD 3+, depression, COPD)</span><input type="number" id="ncc" min="0" max="15"></label>
     </div>
   </div>
 </div>
@@ -156,6 +157,7 @@ pre.copy{white-space:pre-wrap;font-family:'IBM Plex Sans',Arial,sans-serif;font-
       <div class="tbox"><p class="k" data-ms="Tekanan darah">Blood pressure</p><p class="v" id="tB">—</p><p class="s" id="tBs"></p></div>
       <div class="tbox"><p class="k">LDL-C</p><p class="v" id="tL">—</p><p class="s" id="tLs"></p></div>
     </div>
+    <div class="status na" id="tEmpty" data-ms="Masukkan umur dan tempoh DM untuk melihat cadangan sasaran.">Enter age and diabetes duration to see suggested targets.</div>
     <div class="why" id="why"></div>
     <h3 data-ms="Keputusan doktor: sahkan atau ubah sasaran">Doctor's decision: confirm or adjust targets</h3>
     <p class="hint" data-ms="Sasaran di atas ialah cadangan. Doktor yang merawat membuat keputusan akhir bersama pesakit.">The targets above are suggestions. The treating doctor makes the final decision with the patient.</p>
@@ -183,16 +185,17 @@ pre.copy{white-space:pre-wrap;font-family:'IBM Plex Sans',Arial,sans-serif;font-
   <div class="card">
     <h2 data-ms="Pencapaian semasa">Current readings</h2>
     <div class="row">
-      <label class="f"><span data-ms="HbA1c terkini (%)">Latest HbA1c (%)</span><input type="number" id="a1c" step="0.1" min="4" max="20" value="9.4"></label>
+      <label class="f"><span data-ms="HbA1c terkini (%)">Latest HbA1c (%)</span><input type="number" id="a1c" step="0.1" min="4" max="20"></label>
       <label class="f"><span data-ms="HbA1c terkini diambil">Latest HbA1c taken</span><select id="a1cAge"><option value="0" data-ms="Dalam 3 bulan lepas">Within the last 3 months</option><option value="1" data-ms="3–6 bulan lepas">3–6 months ago</option><option value="2" data-ms="Lebih 6 bulan lepas">More than 6 months ago</option></select></label>
       <label class="f"><span data-ms="Glukosa puasa kapilari (FBS) / purata SMBG pagi (mmol/L)">Capillary fasting glucose (FBS) / mean morning SMBG (mmol/L)</span><input type="number" id="fpg" step="0.1" min="2" max="40" data-ph-en="every visit" data-ph-ms="setiap lawatan" placeholder="every visit"></label>
-      <label class="f">SBP (mmHg)<input type="number" id="sbp" min="70" max="260" value="146"></label>
-      <label class="f">DBP (mmHg)<input type="number" id="dbp" min="40" max="160" value="84"></label>
-      <label class="f">LDL-C (mmol/L)<input type="number" id="ldl" step="0.1" min="0.3" max="15" value="2.9"></label>
+      <label class="f">SBP (mmHg)<input type="number" id="sbp" min="70" max="260"></label>
+      <label class="f">DBP (mmHg)<input type="number" id="dbp" min="40" max="160"></label>
+      <label class="f">LDL-C (mmol/L)<input type="number" id="ldl" step="0.1" min="0.3" max="15"></label>
       <label class="f"><span data-ms="Trigliserida (mmol/L)">Triglycerides (mmol/L)</span><input type="number" id="tg" step="0.1" min="0.2" max="40" data-ph-en="optional" data-ph-ms="pilihan" placeholder="optional"></label>
-      <label class="f"><span data-ms="Berat badan (kg)">Body weight (kg)</span><input type="number" id="wt" step="0.1" min="25" max="250" value="76"></label>
+      <label class="f"><span data-ms="Berat badan (kg)">Body weight (kg)</span><input type="number" id="wt" step="0.1" min="25" max="250"></label>
       <label class="f"><span data-ms="Hipoglisemia 3 bulan lepas">Hypoglycaemia in last 3 months</span><select id="hypoRec"><option value="none" data-ms="Tiada">None</option><option value="mild" data-ms="Ringan">Mild</option><option value="severe" data-ms="Teruk (perlu bantuan)">Severe (needed assistance)</option></select></label>
     </div>
+    <div class="chk" style="margin-top:10px"><label><input type="checkbox" id="symp"><span data-ms="Gejala hiperglisemia / penurunan berat badan (poliuria, polidipsia)">Symptomatic hyperglycaemia / weight loss (polyuria, polydipsia)</span></label></div>
   </div>
   <div class="card">
     <h2 data-ms="Rawatan glukosa semasa">Current glucose-lowering treatment</h2>
@@ -288,12 +291,21 @@ pre.copy{white-space:pre-wrap;font-family:'IBM Plex Sans',Arial,sans-serif;font-
     <tr><td class="c" data-ms="1–2% atas sasaran">1–2% above target</td><td data-ms="Pertimbang 2 ubat daripada kelas berbeza, ATAU intensifikasi insulin">Consider 2 drugs from different classes, OR intensify insulin</td></tr>
     <tr><td class="c" data-ms="&gt;2% atas sasaran">&gt;2% above target</td><td data-ms="Mulakan insulin ± GLP-1 RA, ATAU intensifikasi insulin">Start insulin ± GLP-1 RA, OR intensify insulin</td></tr>
     </table>
+    <h3 data-ms="Pesakit baru didiagnos (&lt;1 tahun) yang belum ada ubat: CPG Rajah 3-3" style="margin-top:14px">Newly diagnosed (&lt;1 year), not yet on medication: CPG Figure 3-3</h3>
+    <table class="ref"><tr><th>HbA1c / FPG</th><th data-ms="Rawatan awal (disesuaikan dengan amalan KK)">Initial treatment (adapted to clinic practice)</th></tr>
+    <tr><td class="c">&lt;6.5% / &lt;6.0</td><td data-ms="Gaya hidup; pertimbang metformin">Lifestyle; consider metformin</td></tr>
+    <tr><td class="c">6.5–7.4% / 6.0–7.9</td><td data-ms="Metformin (pertimbang dual jika perlu)">Metformin (consider dual therapy if needed)</td></tr>
+    <tr><td class="c">7.5–8.4% / 8.0–9.9</td><td data-ms="Metformin + gliclazide">Metformin + gliclazide</td></tr>
+    <tr><td class="c">8.5–10.0% / 10.0–13.0</td><td data-ms="Metformin + gliclazide + DPP-4i atau pioglitazone; alternatif insulin basal">Metformin + gliclazide + DPP-4i or pioglitazone; alternative basal insulin</td></tr>
+    <tr><td class="c" data-ms="&gt;10.0% / &gt;13.0 atau bergejala">&gt;10.0% / &gt;13.0 or symptomatic</td><td data-ms="Insulin basal + metformin (± gliclazide)">Basal insulin + metformin (± gliclazide)</td></tr>
+    </table>
+    <p class="note" data-ms="Susunan ubat dalam kalkulator: (1) metformin dahulu, kecuali tidak toleran atau kontraindikasi; (2) tambahan pilihan utama: gliclazide atau DPP-4i; (3) SGLT2-i atau GLP-1 RA hanya jika ada indikasi (ASCVD, kegagalan jantung, DKD, obes), tertakluk kepada kuota dan ketersediaan; (4) insulin.">Drug order used by the calculator: (1) metformin first, unless intolerant or contraindicated; (2) preferred add-on: gliclazide or DPP-4i; (3) SGLT2-i or GLP-1 RA only when indicated (ASCVD, heart failure, DKD, obesity), subject to quota and availability; (4) insulin.</p>
     <p class="note" data-ms="Pemantauan: HbA1c setiap 6 bulan (kekangan kos); di antaranya, keputusan titrasi berpandukan FBS kapilari atau SMBG setiap 2–4 minggu. Sasaran puasa 4.4–7.0 mmol/L (CPG Jadual 3-5); warga emas 5.0–7.2 (sihat), 5.0–8.3 (kompleks), 5.6–10.0 (sangat kompleks) (CPG Jadual 6-2). Selepas makan: 4.4–8.5 mmol/L. Insulin (CPG Rajah 3-2): basal 10 U atau 0.1–0.2 U/kg; titrasi berpandukan glukosa puasa; kurangkan 10–20% jika hipoglisemia. Jika HbA1c masih atas sasaran walaupun FPG tercapai, atau dos basal &gt;0.5 U/kg: tambah insulin prandial 4 U atau 10% dos basal, titrasi 1–2 U atau 10–15% setiap 3 hari. Jumlah dos &gt;1.5–2.0 U/kg: cari punca (kepatuhan, teknik, jangkitan). Hentikan SU apabila menggunakan insulin penuh. Glibenclamide tidak disyorkan bagi umur &gt;60. Pilihan ubat mengikut profil pesakit (CPG Rajah 3-5): ASCVD (SGLT2-i / GLP-1 RA), kegagalan jantung (SGLT2-i), DKD (SGLT2-i, jangan mula jika eGFR &lt;30), obes (GLP-1 RA / SGLT2-i), risiko hipoglisemia (DPP-4i / SGLT2-i). Metformin: separuh dos pada eGFR 30–44, hentikan jika eGFR &lt;30. Ketersediaan ubat tertakluk kepada Formulari Ubat KKM dan kategori preskriber.">Monitoring: HbA1c every 6 months (cost constraint); in between, titration decisions are guided by capillary FBS or SMBG every 2–4 weeks. Fasting target 4.4–7.0 mmol/L (CPG Table 3-5); older adults 5.0–7.2 (healthy), 5.0–8.3 (complex), 5.6–10.0 (very complex) (CPG Table 6-2). Post-prandial: 4.4–8.5 mmol/L. Insulin (CPG Figure 3-2): basal 10 U or 0.1–0.2 U/kg; titrate on fasting glucose; reduce 10–20% if hypoglycaemia. If HbA1c remains above target although FPG is at target, or basal dose &gt;0.5 U/kg: add prandial insulin 4 U or 10% of basal dose, titrate 1–2 U or 10–15% every 3 days. Total dose &gt;1.5–2.0 U/kg: look for causes (adherence, technique, infection). Stop SU once on full insulin. Glibenclamide is not recommended for age &gt;60. Drug choice by patient profile (CPG Figure 3-5): ASCVD (SGLT2-i / GLP-1 RA), heart failure (SGLT2-i), DKD (SGLT2-i; do not start if eGFR &lt;30), obesity (GLP-1 RA / SGLT2-i), hypoglycaemia risk (DPP-4i / SGLT2-i). Metformin: half dose at eGFR 30–44, stop if eGFR &lt;30. Drug availability is subject to the MOH Medicines Formulary and prescriber category.</p>
   </div>
   <div class="card">
     <h2 data-ms="Rujukan">References</h2>
     <ol class="refs">
-      <li>Ministry of Health Malaysia. Clinical Practice Guidelines: Management of Type 2 Diabetes Mellitus, 6th Edition. 2020. (Tables 3-5, 3-6, 3-25 to 3-29, 6-2; Figures 3-2, 3-4, 3-5; Sections 3.9.1–3.9.2.)</li>
+      <li>Ministry of Health Malaysia. Clinical Practice Guidelines: Management of Type 2 Diabetes Mellitus, 6th Edition. 2020. (Tables 3-5, 3-6, 3-25 to 3-29, 6-2; Figures 3-2, 3-3, 3-4, 3-5; Sections 3.9.1–3.9.2.)</li>
       <li>Ismail-Beigi F, Moghissi E, Tiktin M, et al. Individualizing glycemic targets in type 2 diabetes mellitus: implications of recent clinical trials. Ann Intern Med. 2011;154(8):554–559.</li>
       <li>Cosentino F, Grant PJ, Aboyans V, et al. 2019 ESC Guidelines on diabetes, pre-diabetes, and cardiovascular diseases developed in collaboration with the EASD. Eur Heart J. 2020;41(2):255–323. doi:10.1093/eurheartj/ehz486.</li>
       <li>Marx N, Federici M, Schütt K, et al. 2023 ESC Guidelines for the management of cardiovascular disease in patients with diabetes. Eur Heart J. 2023;44(39):4043–4140. doi:10.1093/eurheartj/ehad192.</li>
@@ -399,6 +411,7 @@ function targets(){
   return r;
 }
 function fbsT(T){if(T.elder){return {healthy:[5.0,7.2],complex:[5.0,8.3],vcomplex:[5.6,10.0]}[T.es];}return [4.4,7.0];}
+function wait(m){return `<div class="status na">${m}</div>`}
 function li(t,cls){return `<li${cls?` class="${cls}"`:''}>${t}</li>`}
 function stat(ok,label,extra){if(ok===null)return `<div class="status na">${L('No data','Data tiada')}</div>`;return `<div class="status ${ok?'ok':'no'}"${extra||''}><span class="big">${ok?'✓':'✕'}</span>${label}</div>`}
 
@@ -408,7 +421,9 @@ function glyc(T){
   const others=['dpp','sglt','glp','tzd','agi'].filter(ck);
   const nOGLD=(met!=='0'&&met!=='ci'?1:0)+(su!=='none'?1:0)+others.filter(x=>x!=='glp').length;
   const S=[];
-  if(a===null) return {html:stat(null),txt:'HbA1c: '+L('no data','tiada data')};
+  const newDx=p.dur!==null&&p.dur<1&&met==='0'&&su==='none'&&ins==='none'&&others.length===0;
+  if(newDx&&(a!==null||fpg!==null||ck('symp'))) return newDxPlan(T,a,fpg,wt,eg);
+  if(a===null) return {html:wait(L('Enter HbA1c to see the glycaemic plan (or FBS for a newly diagnosed patient not yet on medication).','Masukkan HbA1c untuk melihat pelan glisemik (atau FBS bagi pesakit baru didiagnos yang belum ada ubat).')),txt:'HbA1c: '+L('no data','tiada data')};
   const gap=+(a-T.a).toFixed(1);
   const at= T.a===7.0||T.a===8.5 ? a<T.a : a<=T.a;
   let head=stat(at, at?L(`HbA1c ${a}% within target (${fmtA2(T.a,T.elder)})`,`HbA1c ${a}% dalam sasaran (${fmtA2(T.a,T.elder)})`):L(`HbA1c ${a}%: ${gap.toFixed(1)}% above target (${fmtA2(T.a,T.elder)})`,`HbA1c ${a}%: ${gap.toFixed(1)}% atas sasaran (${fmtA2(T.a,T.elder)})`));
@@ -435,22 +450,17 @@ function glyc(T){
   if(ins!=='none'&&!ck('smbg')) bar.push(L('ensure SMBG is available for titration','pastikan SMBG tersedia untuk titrasi'));
   if(bar.length) S.push(li(L('<b>Check barriers first:</b> ','<b>Semak halangan dahulu:</b> ')+bar.join('; ')+L('. Adherence is the biggest barrier before intensification (CPG).','. Kepatuhan ialah halangan terbesar sebelum intensifikasi (CPG).'),'pre'));
   const metMax=(eg!==null&&eg<45)?1000:2000;
-  if(met==='0'&&(eg===null||eg>=30)) S.push(li(L(`<b>Start metformin</b> (titrate to ${metMax} mg/day if tolerated), unless contraindicated.`,`<b>Mulakan metformin</b> (titrasi hingga ${metMax} mg/hari jika toleran), melainkan kontraindikasi.`)));
-  else if(met!=='ci'&&met!=='0'&&parseInt(met)<metMax&&(eg===null||eg>=30)) S.push(li(L(`<b>Optimise metformin</b> to ${metMax} mg/day (or maximum tolerated dose).`,`<b>Optimumkan metformin</b> kepada ${metMax} mg/hari (atau dos maksimum toleran).`)));
-  const pref=[];
-  if(p.hf) pref.push(['SGLT2-i',L('heart failure','kegagalan jantung')]);
-  if(T.cvd) pref.push([L('SGLT2-i or GLP-1 RA (proven CV benefit)','SGLT2-i atau GLP-1 RA (bukti CV)'),'ASCVD']);
-  if(T.dkd&&(eg===null||eg>=30)) pref.push(['SGLT2-i',L('DKD (do not start if eGFR <30)','DKD (jangan mula jika eGFR <30)')]);
-  if(p.bmi!==null&&p.bmi>=27.5) pref.push([L('GLP-1 RA or SGLT2-i','GLP-1 RA atau SGLT2-i'),L('obesity','obesiti')]);
-  if(p.hypoSev||p.hypoUn||p.fall||p.drive||T.elder) pref.push([L('DPP-4i or SGLT2-i (avoid high-dose SU)','DPP-4i atau SGLT2-i (elak SU dos tinggi)'),L('hypoglycaemia risk','risiko hipoglisemia')]);
-  const prefTxt=pref.length?L(' Choice by profile: ',' Pilihan ikut profil: ')+[...new Set(pref.map(x=>x[0]+' ('+x[1]+')'))].join('; ')+'.':L(' Options: DPP-4i, SU (gliclazide), SGLT2-i or pioglitazone, subject to availability.',' Pilihan: DPP-4i, SU (gliclazide), SGLT2-i atau pioglitazone mengikut ketersediaan.');
+  const egN=eg===null?L(' <b>Check eGFR first.</b>',' <b>Semak eGFR dahulu.</b>'):'';
+  if(met==='0'&&(eg===null||eg>=30)) S.push(li(L(`<b>Start metformin</b> (titrate to ${metMax} mg/day if tolerated), unless contraindicated.`,`<b>Mulakan metformin</b> (titrasi hingga ${metMax} mg/hari jika toleran), melainkan kontraindikasi.`)+egN));
+  else if(met!=='ci'&&met!=='0'&&parseInt(met)<metMax&&(eg===null||eg>=30)) S.push(li(L(`<b>Optimise metformin</b> to ${metMax} mg/day (or maximum tolerated dose).`,`<b>Optimumkan metformin</b> kepada ${metMax} mg/hari (atau dos maksimum toleran).`)+egN));
+  const prefTxt=addOn(T,su,eg);
   const noSGLT=!ck('sglt')&&(eg===null||eg>=30);
   if(ins==='none'){
     const needIns = gap>2||a>10||(fpg!==null&&fpg>13)||nOGLD>=3;
     if(needIns){
       const d1=wt?Math.round(wt*0.1):null,d2=wt?Math.round(wt*0.2):null;
-      S.push(li(L(`<b>Start basal insulin</b> ${nOGLD>=3?'(already on ≥3 OGLDs with HbA1c above target)':'(HbA1c >2% above target / >10%)'}: 10 U at bedtime${wt?` or 0.1–0.2 U/kg (${d1}–${d2} U)`:''}. Continue metformin${ck('sglt')?', SGLT2-i':''}${ck('dpp')?', DPP-4i':''}. Consider GLP-1 RA if available.`,
-        `<b>Mulakan insulin basal</b> ${nOGLD>=3?'(sudah ≥3 OGLD dan HbA1c atas sasaran)':'(HbA1c >2% atas sasaran / >10%)'}: 10 U waktu tidur${wt?` atau 0.1–0.2 U/kg (${d1}–${d2} U)`:''}. Teruskan metformin${ck('sglt')?', SGLT2-i':''}${ck('dpp')?', DPP-4i':''}. Pertimbang GLP-1 RA jika tersedia.`)));
+      S.push(li(L(`<b>Start basal insulin</b> ${nOGLD>=3?'(already on ≥3 OGLDs with HbA1c above target)':'(HbA1c >2% above target / >10%)'}: 10 U at bedtime${wt?` or 0.1–0.2 U/kg (${d1}–${d2} U)`:''}. Continue metformin${ck('sglt')?', SGLT2-i':''}${ck('dpp')?', DPP-4i':''}. GLP-1 RA may be considered if indicated and quota allows.`,
+        `<b>Mulakan insulin basal</b> ${nOGLD>=3?'(sudah ≥3 OGLD dan HbA1c atas sasaran)':'(HbA1c >2% atas sasaran / >10%)'}: 10 U waktu tidur${wt?` atau 0.1–0.2 U/kg (${d1}–${d2} U)`:''}. Teruskan metformin${ck('sglt')?', SGLT2-i':''}${ck('dpp')?', DPP-4i':''}. GLP-1 RA boleh dipertimbang jika ada indikasi dan kuota membenarkan.`)));
       S.push(li(L(`<b>Titrate on capillary FBS / SMBG</b>: increase by 2 U every 3 days until fasting glucose is ${f1(FT[0])}–${f1(fHi)} mmol/L; reduce by 10–20% if hypoglycaemia. Teach self-titration where feasible.`,`<b>Titrasi berpandukan FBS kapilari / SMBG</b>: naikkan 2 U setiap 3 hari sehingga glukosa puasa ${f1(FT[0])}–${f1(fHi)} mmol/L; kurangkan 10–20% jika hipoglisemia. Ajar pesakit titrasi sendiri jika mampu.`)));
       if(su!=='none') S.push(li(L('SU may continue with basal insulin, but reduce/stop it when insulin is intensified.','SU boleh diteruskan semasa insulin basal, tetapi kurangkan/hentikan apabila insulin diintensifkan.')));
     } else if(gap>1){
@@ -474,16 +484,80 @@ function glyc(T){
       S.push(li(L('<b>Titrate basal-bolus</b>: basal on fasting glucose; each prandial dose on the next pre-meal / bedtime reading (1–2 U or 10–15% every 3 days).','<b>Titrasi basal-bolus</b>: basal ikut glukosa puasa; setiap dos prandial ikut bacaan sebelum makan seterusnya / sebelum tidur (1–2 U atau 10–15% setiap 3 hari).')));
     }
     if(su!=='none'&&ins!=='basal') S.push(li(L('<b>Stop SU</b>: the patient is on full insulin (CPG Figure 3-4).','<b>Hentikan SU</b>: pesakit menggunakan insulin penuh (CPG Rajah 3-4).')));
-    if(noSGLT&&(T.cvd||p.hf||T.dkd||(p.bmi&&p.bmi>=27.5))) S.push(li(L('Consider adding an <b>SGLT2-i</b> to insulin (cardiorenal benefit, lower insulin requirement).','Pertimbang tambah <b>SGLT2-i</b> bersama insulin (manfaat jantung/ginjal, kurangkan keperluan insulin).')));
+    if(noSGLT&&(T.cvd||p.hf||T.dkd||(p.bmi&&p.bmi>=27.5))) S.push(li(L('Consider adding an <b>SGLT2-i</b> to insulin (cardiorenal benefit, lower insulin requirement), subject to quota / availability.'+(eg===null?' <b>Check eGFR first.</b>':''),'Pertimbang tambah <b>SGLT2-i</b> bersama insulin (manfaat jantung/ginjal, kurangkan keperluan insulin), tertakluk kepada kuota / ketersediaan.'+(eg===null?' <b>Semak eGFR dahulu.</b>':''))));
   }
   if(ins==='none'&&fpg!==null&&fpg<=fHi) S.push(li(L('FBS in range but HbA1c high: check <b>post-prandial glucose</b> (2-hour SMBG, target 4.4–8.5 mmol/L); consider a drug targeting post-prandial glucose.','FBS dalam julat tetapi HbA1c tinggi: semak <b>glukosa selepas makan</b> (SMBG 2 jam, sasaran 4.4–8.5 mmol/L); pertimbang ubat yang menyasarkan glukosa selepas makan.'),'pre'));
   S.push(li(L('Review every 2–4 weeks (insulin titration clinic / DMTAC) using <b>capillary FBS or SMBG</b> to assess the effect of treatment changes, without waiting for HbA1c.','Susulan setiap 2–4 minggu (klinik titrasi / DMTAC) dengan <b>FBS kapilari atau SMBG</b> untuk menilai kesan perubahan rawatan, tanpa menunggu HbA1c.')));
   return {html:head+`<ol class="steps">${S.join('')}</ol>`,at,gap,txt:txtOf(head,S)};
 }
 
+function hypoRiskOf(T){const p=T.p;return p.hypoSev||p.hypoUn||p.fall||p.drive||T.elder}
+function indOf(T,eg){
+  const p=T.p,ind=[];
+  if(p.hf) ind.push(L('heart failure','kegagalan jantung'));
+  if(T.cvd) ind.push('ASCVD');
+  if(T.dkd) ind.push('DKD');
+  if(p.bmi!==null&&p.bmi>=27.5) ind.push(L('obesity','obesiti'));
+  if(!ind.length) return '';
+  const hasS=ck('sglt'),hasG=ck('glp'),sOK=eg===null||eg>=30;
+  const wantG=T.cvd||(p.bmi!==null&&p.bmi>=27.5);
+  let d=[];
+  if(!hasS&&sOK) d.push('SGLT2-i');
+  if(!hasG&&wantG) d.push('GLP-1 RA');
+  if(!d.length) return '';
+  const dn=d.join(L(' or ',' atau '));
+  return L(` Indication for <b>${dn}</b> (${ind.join(', ')}): use if quota / availability allows${d.includes('SGLT2-i')&&eg===null?' (check eGFR first)':''}.`,
+           ` Ada indikasi untuk <b>${dn}</b> (${ind.join(', ')}): gunakan jika kuota / ketersediaan membenarkan${d.includes('SGLT2-i')&&eg===null?' (semak eGFR dahulu)':''}.`);
+}
+function addOn(T,su,eg){
+  const hr=hypoRiskOf(T),av=[];
+  if(su==='none') av.push(hr?L('low-dose gliclazide','gliclazide dos rendah'):'gliclazide');
+  if(!ck('dpp')&&!ck('glp')) av.push('DPP-4i');
+  let t=av.length?L(' Preferred add-on: ',' Pilihan utama: ')+av.join(L(' or ',' atau '))+(hr&&av.length>1?L(' (DPP-4i preferred: hypoglycaemia risk)',' (DPP-4i diutamakan: risiko hipoglisemia)'):'')+'.':'';
+  const ind=indOf(T,eg); t+=ind;
+  if(!av.length&&!ind) t+=L(' Other options: pioglitazone or acarbose, subject to availability.',' Pilihan lain: pioglitazone atau acarbose, ikut ketersediaan.');
+  return t;
+}
+function newDxPlan(T,a,fpg,wt,eg){
+  const p=T.p,S=[],FT=fbsT(T),fHi=FT[1],hr=hypoRiskOf(T),sym=ck('symp');
+  let b=-1;
+  if(a!==null) b=a<6.5?0:a<7.5?1:a<8.5?2:a<=10?3:4;
+  if(fpg!==null){const bf=fpg<6?0:fpg<8?1:fpg<10?2:fpg<=13?3:4;b=Math.max(b,bf);}
+  if(sym) b=4;
+  let head='',at,gap;
+  if(a!==null){gap=+(a-T.a).toFixed(1);at=T.a===7.0||T.a===8.5?a<T.a:a<=T.a;
+    head=stat(at,at?L(`HbA1c ${a}% within target (${fmtA2(T.a,T.elder)})`,`HbA1c ${a}% dalam sasaran (${fmtA2(T.a,T.elder)})`):L(`HbA1c ${a}%: ${gap.toFixed(1)}% above target (${fmtA2(T.a,T.elder)})`,`HbA1c ${a}%: ${gap.toFixed(1)}% atas sasaran (${fmtA2(T.a,T.elder)})`));}
+  if(fpg!==null){const fin=fpg>=FT[0]&&fpg<=fHi;head+=stat(fin,L(`Fasting glucose ${fpg} mmol/L ${fin?'within':(fpg>fHi?'above':'below')} target range (${f1(FT[0])}–${f1(fHi)})`,`Glukosa puasa ${fpg} mmol/L ${fin?'dalam':(fpg>fHi?'atas':'bawah')} julat sasaran (${f1(FT[0])}–${f1(fHi)})`),' style="font-weight:500"');}
+  if(!head) head=wait(L('Symptomatic hyperglycaemia: enter HbA1c or FBS when available.','Hiperglisemia bergejala: masukkan HbA1c atau FBS apabila ada.'));
+  S.push(li(L('<b>Newly diagnosed (&lt;1 year), not yet on medication</b>: initial treatment by HbA1c / FPG at diagnosis (CPG Figure 3-3). Lifestyle modification (MNT, physical activity, weight loss) is the foundation at every step.','<b>Baru didiagnos (&lt;1 tahun), belum ada ubat</b>: rawatan awal ikut HbA1c / FPG semasa diagnosis (CPG Rajah 3-3). Pengubahsuaian gaya hidup (MNT, aktiviti fizikal, turun berat badan) ialah asas pada setiap peringkat.'),'pre'));
+  const metOK=eg===null||eg>=30, metMax=(eg!==null&&eg<45)?1000:2000;
+  if(!metOK) S.push(li(L('<b>Metformin contraindicated</b> (eGFR &lt;30): use DPP-4i in its place; discuss with FMS.','<b>Metformin kontraindikasi</b> (eGFR &lt;30): gunakan DPP-4i sebagai ganti; bincang dengan FMS.'),'warn'));
+  const M=metOK?L(`metformin (start 500 mg, titrate to ${metMax} mg/day if tolerated)`,`metformin (mula 500 mg, titrasi hingga ${metMax} mg/hari jika toleran)`):'DPP-4i';
+  const G=hr?L('low-dose gliclazide (hypoglycaemia risk)','gliclazide dos rendah (risiko hipoglisemia)'):'gliclazide';
+  const egN=(metOK&&eg===null)?L(' <b>Check eGFR before starting metformin.</b>',' <b>Semak eGFR sebelum mula metformin.</b>'):'';
+  const third=p.hf?'DPP-4i':L('DPP-4i or pioglitazone (subject to availability)','DPP-4i atau pioglitazone (ikut ketersediaan)');
+  const d1=wt?Math.round(wt*0.1):null,d2=wt?Math.round(wt*0.2):null;
+  const insDose=L(`10 U at bedtime${wt?` or 0.1–0.2 U/kg (${d1}–${d2} U)`:' or 0.1–0.2 U/kg'}`,`10 U waktu tidur${wt?` atau 0.1–0.2 U/kg (${d1}–${d2} U)`:' atau 0.1–0.2 U/kg'}`);
+  if(b<=0) S.push(li(L(`HbA1c &lt;6.5% and FPG &lt;6.0: lifestyle modification; <b>consider ${M}</b>.`,`HbA1c &lt;6.5% dan FPG &lt;6.0: pengubahsuaian gaya hidup; <b>pertimbang ${M}</b>.`)+egN));
+  else if(b===1) S.push(li(L(`HbA1c 6.5–7.4% / FPG 6.0–7.9: <b>start ${M}</b>. Consider dual therapy (+ ${G}) if far from the individual target.`,`HbA1c 6.5–7.4% / FPG 6.0–7.9: <b>mulakan ${M}</b>. Pertimbang dual (+ ${G}) jika jauh dari sasaran individu.`)+egN));
+  else if(b===2) S.push(li(L(`HbA1c 7.5–8.4% / FPG 8.0–9.9: <b>start ${M} + ${G}</b>.${hr?' DPP-4i may replace gliclazide.':''}`,`HbA1c 7.5–8.4% / FPG 8.0–9.9: <b>mulakan ${M} + ${G}</b>.${hr?' DPP-4i boleh menggantikan gliclazide.':''}`)+egN));
+  else if(b===3){
+    S.push(li(L(`HbA1c 8.5–10.0% / FPG 10.0–13.0: <b>start triple therapy: ${M} + ${G} + ${third}</b>.`,`HbA1c 8.5–10.0% / FPG 10.0–13.0: <b>mulakan gabungan tiga ubat: ${M} + ${G} + ${third}</b>.`)+egN));
+    S.push(li(L(`Alternative: <b>basal insulin</b> as the third agent (${insDose}), especially if HbA1c is close to 10% or by clinical judgement.`,`Alternatif: <b>insulin basal</b> sebagai ubat ketiga (${insDose}), terutama jika HbA1c menghampiri 10% atau ikut pertimbangan doktor.`)));
+  } else {
+    const why=sym?L('symptomatic hyperglycaemia / weight loss','hiperglisemia bergejala / penurunan berat badan'):L('HbA1c &gt;10% or FPG &gt;13.0','HbA1c &gt;10% atau FPG &gt;13.0');
+    S.push(li(L(`<b>Start basal insulin</b> (${why}): ${insDose}, with ${M} (± ${G}).`,`<b>Mulakan insulin basal</b> (${why}): ${insDose}, bersama ${M} (± ${G}).`)+egN,'warn'));
+    S.push(li(L(`<b>Titrate on capillary FBS / SMBG</b>: increase by 2 U every 3 days until fasting glucose is ${f1(FT[0])}–${f1(fHi)} mmol/L; reduce by 10–20% if hypoglycaemia.`,`<b>Titrasi berpandukan FBS kapilari / SMBG</b>: naikkan 2 U setiap 3 hari sehingga glukosa puasa ${f1(FT[0])}–${f1(fHi)} mmol/L; kurangkan 10–20% jika hipoglisemia.`)));
+  }
+  const ind=indOf(T,eg); if(ind&&b>=1) S.push(li(ind.trim()));
+  if(T.elder) S.push(li(L('Glibenclamide is not recommended above age 60.','Glibenclamide tidak disyorkan bagi umur &gt;60.')));
+  S.push(li(L('Check capillary FBS / SMBG every 2–4 weeks to titrate; repeat HbA1c 3–6 months after starting treatment (CPG Figure 3-3).','Semak FBS kapilari / SMBG setiap 2–4 minggu untuk titrasi; ulang HbA1c 3–6 bulan selepas mula rawatan (CPG Rajah 3-3).')));
+  return {html:head+`<ol class="steps">${S.join('')}</ol>`,at,gap,txt:txtOf(head,S)};
+}
+
 function bp(T){
   const s=num('sbp'),d=num('dbp');const S=[];
-  if(s===null||d===null) return {html:stat(null),txt:'BP: '+L('no data','tiada data')};
+  if(s===null||d===null) return {html:wait(L('Enter SBP and DBP to see the blood pressure plan.','Masukkan SBP dan DBP untuk melihat pelan tekanan darah.')),txt:'BP: '+L('no data','tiada data')};
   const B=T.b; const at=s<B.s&&d<B.d; const low=B.lowS&&(s<B.lowS||d<B.lowD);
   const head=stat(at,at?L(`BP ${s}/${d} within target (${B.txt})`,`BP ${s}/${d} dalam sasaran (${B.txt})`):L(`BP ${s}/${d} above target (${B.txt})`,`BP ${s}/${d} atas sasaran (${B.txt})`));
   if(at&&low){S.push(li(L(`BP too low (SBP <${B.lowS} or DBP <${B.lowD}): consider reducing medication, especially if dizzy or falling.`,`BP terlalu rendah (SBP <${B.lowS} atau DBP <${B.lowD}): pertimbang kurangkan ubat, terutama jika pening/jatuh.`),'warn'));}
@@ -506,7 +580,7 @@ function bp(T){
 
 function lipid(T){
   const l=num('ldl'),tg=num('tg');const S=[];
-  if(l===null) return {html:stat(null),txt:'LDL: '+L('no data','tiada data')};
+  if(l===null) return {html:wait(L('Enter LDL-C to see the lipid plan.','Masukkan LDL-C untuk melihat pelan lipid.')),txt:'LDL: '+L('no data','tiada data')};
   const Lt=T.l;
   if(Lt.v===null){const h=stat(true,L(`LDL ${l} mmol/L: individual target`,`LDL ${l} mmol/L: sasaran individu`));S.push(li(L('Continue statin if tolerated; weigh benefit against life expectancy.','Teruskan statin jika toleran; pertimbang manfaat mengikut jangka hayat.')));return {html:h+`<ol class="steps">${S.join('')}</ol>`,at:true,txt:txtOf(h,S)};}
   const at=l<Lt.v; const need=Math.max(0,Math.round((1-Lt.v/l)*100));
@@ -546,8 +620,17 @@ function txtOf(head,S){return strip(head).replace(/[✓✕]/g,m=>m==='✓'?L('[M
 
 let last={};
 function update(){
+  const ag=num('age'),ready=ag!==null&&num('dur')!==null;
+  $('elderBlock').style.display=(ag!==null&&ag>60)?'block':'none';
+  $('tEmpty').style.display=ready?'none':'flex';
+  if(!ready){
+    ['tA','tB','tL'].forEach(k=>$(k).textContent='—');['tAs','tBs','tLs'].forEach(k=>$(k).textContent='');
+    $('why').innerHTML='';$('tgtLine').textContent='';
+    const m=wait(L('Complete age and diabetes duration in tab 1 first.','Lengkapkan umur dan tempoh DM di tab 1 dahulu.'));
+    $('oA').innerHTML=m;$('oB').innerHTML='';$('oL').innerHTML='';$('oN').innerHTML='';$('oF').innerHTML='';
+    $('cp1').disabled=true;$('cp2').disabled=true;last={};return;
+  }
   const T=targets();
-  $('elderBlock').style.display=T.elder?'block':'none';
   $('tA').textContent=fmtA2(T.a,T.elder)+(T.aOv?'*':'');
   $('tAs').textContent=T.aOv?L('Adjusted by doctor (originally suggested ','Diubah suai oleh pegawai (cadangan asal ')+fmtA2(T.aAuto,T.elder)+')':(T.elder?L('Older adult: ','Warga emas: ')+eldName(T.es):({6.5:L('Tight','Ketat'),7.0:L('Standard','Standard'),8.0:L('Less stringent','Kurang ketat')})[T.aAuto]||'');
   $('tB').textContent=T.b.txt+(T.bOv?'*':''); $('tBs').textContent=T.b.sub;
@@ -555,17 +638,20 @@ function update(){
   const w=[T.aw];
   {const F=fbsT(T);w.push(L(`Fasting glucose target (capillary FBS / SMBG) for titration between 6-monthly HbA1c tests: ${f1(F[0])}–${f1(F[1])} mmol/L.`,`Sasaran glukosa puasa (FBS kapilari / SMBG) untuk titrasi antara ujian HbA1c 6-bulanan: ${f1(F[0])}–${f1(F[1])} mmol/L.`));}
   if(T.l.v&&T.p.age>40) w.push(L('All patients with diabetes aged >40 should receive a statin regardless of LDL-C. If the target is unattainable, aim for ≥50% reduction.','Semua pesakit DM >40 tahun perlu statin tanpa mengira paras LDL-C. Jika sasaran tidak dapat dicapai, sasarkan penurunan ≥50%.'));
+  if(T.p.egfr===null) w.push(L('eGFR not entered: targets assume normal kidney function.','eGFR tidak diisi: sasaran dikira dengan anggapan fungsi buah pinggang normal.'));
   if(T.l.nh) w.push(L(`Secondary target non-HDL-C: <${T.l.nh} mmol/L; TG <1.7 mmol/L.`,`Sasaran sekunder non-HDL-C: <${T.l.nh} mmol/L; TG <1.7 mmol/L.`));
   $('why').innerHTML='<ul>'+w.map(x=>`<li>${x}</li>`).join('')+'</ul>';
   $('tgtLine').textContent=L('Targets: ','Sasaran: ')+`HbA1c ${fmtA2(T.a,T.elder)} · BP ${T.b.txt} · LDL-C ${T.l.txt}${T.l.v?' mmol/L':''}`;
   const g=glyc(T),b=bp(T),l=lipid(T),n=nonpharm(T);
   $('oA').innerHTML=g.html;$('oB').innerHTML=b.html;$('oL').innerHTML=l.html;$('oN').innerHTML=n.html;
+  const any=[g.at,b.at,l.at].some(x=>x!==undefined);
   const allAt=g.at&&b.at&&l.at;
   const notAt=[g.at===false?'HbA1c':null,b.at===false?'BP':null,l.at===false?'LDL':null].filter(Boolean);
   const fu=allAt?L('All targets met: repeat HbA1c every 6 months; BP every visit; lipids yearly.','Semua sasaran tercapai: ulang HbA1c setiap 6 bulan; BP setiap lawatan; lipid setahun sekali.'):
     L(`Not yet met: ${notAt.join(', ')||'incomplete data'}. Check capillary FBS / SMBG and BP every 2–4 weeks and titrate; repeat HbA1c in 6 months. If the 6-month HbA1c shows no progress, bring the case to a case-based discussion (CBD) with the FMS.`,
       `Belum tercapai: ${notAt.join(', ')||'data belum lengkap'}. Semak FBS kapilari / SMBG dan BP setiap 2–4 minggu dan titrasi; ulang HbA1c dalam 6 bulan. Jika HbA1c 6 bulan tidak menunjukkan kemajuan, bawa ke perbincangan kes (CBD) bersama FMS.`);
-  $('oF').innerHTML=`<ol class="steps">${li(fu)}</ol>`;
+  $('oF').innerHTML=any?`<ol class="steps">${li(fu)}</ol>`:wait(L('Follow-up plan appears once readings are entered.','Pelan susulan dipaparkan selepas bacaan dimasukkan.'));
+  $('cp1').disabled=false;$('cp2').disabled=!any;
   last={T,g,b,l,n,fu};
   $('pc1').textContent=tgtText(T);
 }
